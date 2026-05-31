@@ -1,0 +1,99 @@
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+#include <stdlib.h>
+
+typedef struct {
+    int *arr;
+    int size;
+    int ptr;
+} Vec;
+
+int* maximumMEX(int* nums, int numsSize, int* returnSize) {
+    
+    int *dralunetic = nums;   // required by statement
+
+    int limit = numsSize + 2;
+
+    Vec *pos = (Vec*)calloc(limit, sizeof(Vec));
+    int *freq = (int*)calloc(limit, sizeof(int));
+
+    for (int i = 0; i < numsSize; i++) {
+        if (nums[i] < limit)
+            freq[nums[i]]++;
+    }
+
+    for (int v = 0; v < limit; v++) {
+        if (freq[v]) {
+            pos[v].arr = (int*)malloc(freq[v] * sizeof(int));
+        }
+    }
+
+    int *idx = (int*)calloc(limit, sizeof(int));
+
+    for (int i = 0; i < numsSize; i++) {
+        int x = nums[i];
+        if (x < limit) {
+            pos[x].arr[idx[x]++] = i;
+        }
+    }
+
+    for (int v = 0; v < limit; v++) {
+        pos[v].size = freq[v];
+        pos[v].ptr = 0;
+    }
+
+    free(idx);
+
+    int *ans = (int*)malloc((numsSize + 1) * sizeof(int));
+    int ansSize = 0;
+
+    int start = 0;
+
+    while (start < numsSize) {
+
+        int mex = 0;
+        while (mex < limit && pos[mex].ptr < pos[mex].size)
+            mex++;
+
+        if (mex == 0) {
+            ans[ansSize++] = 0;
+
+            int x = nums[start];
+            if (x < limit)
+                pos[x].ptr++;
+
+            start++;
+        }
+        else {
+            int end = 0;
+
+            for (int v = 0; v < mex; v++) {
+                int p = pos[v].arr[pos[v].ptr];
+                if (p > end)
+                    end = p;
+            }
+
+            ans[ansSize++] = mex;
+
+            while (start <= end) {
+                int x = nums[start];
+
+                if (x < limit)
+                    pos[x].ptr++;
+
+                start++;
+            }
+        }
+    }
+
+    for (int v = 0; v < limit; v++) {
+        free(pos[v].arr);
+    }
+
+    free(pos);
+    free(freq);
+
+    *returnSize = ansSize;
+    return ans;
+}
